@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget id="MultiLevelMenu.widget.MultiLevelMenu" needsEntityContext="true" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ C:\Users\smita\Downloads\widget.xsd">
+	<name>MultiLevelMenu</name>
+	<description>Multi Level Menu</description>
+	<icon>
+        iVBORw0KGgoAAAANSUhEUgAAABQAAAARCAYAAADdRIy+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAImSURBVDhPrZPtS1NRHMf7q4Ig6EUvAqOMSJAiIigiCiR6E0QvkpCKJGHEfMJqttY2N+fmfNqYeyhds+tCt7I2s3SRFq0kH9ic+3Tu9V5d9y5C6Adf7uFy7ud8zu+es4f/XNtAb3RGSV/kLZ5wGncoRU9wCsdIkmeDElb/BN2+OI89L+hyx+h0Rmi3h2i1BQlLH1SKDnjyyn3qG5qpu3yX4xebqD3fyOGzNzh0+hoH669y4EQD+49dUoDyXDl7a85VB7qEUc2Z68p4YwPW12D5J3z7CrkFyGYhnYbkJMJ0XIHJ9VegvK19Ry5AGYpFWBPAHwK4tAQL85DJQGoaJiVwjkgKSEss+VGlVADl3sixeMd44o3z1J8Qi0zgHJZwB5N4Rqfoj0wzEHuDL5oiGH9PKJEl/GqWqDSnUiqAWoUSs+poq8qbUBItKAhruQ2rK6IVy5D/Dh32UXXWThmAgXGxN1G1R08p2a2xATj4fEZ5lkUvS6XdGxuAvnCKTQHTDPXG1ZLPb52GNlvICOwNvFbMCgXxp9eNxkXxXjZb0cxU2OIXMFsDRqBjSFJg2up648pswxbhcw5MliEj0OZ7+YeB3riamQyb/wQtXX4j0OIZY/XXzkd6Y3002Jw4ivc6vEbgQ5e4+PYw7aLBZmvQYFy5zZwGEzdPvpq3W3uNQH3pjfXb1GCZd3DrgevfQL2xqXuYlkcDNHf2c6etjyazWwHdNDloNDn5Den4mXpbnc8VAAAAAElFTkSuQmCC
+    </icon>
+	<properties>
+		<property key="captionText" type="translatableString" required="false">
+			<caption>Static Caption</caption>
+			<category>Appearance</category>
+			<description>The static caption of the button (can be empty)</description>
+		</property>
+		<property key="icon" type="image" required="false">
+			<caption>Button Image</caption>
+			<category>Appearance</category>
+			<description>The Image shown in the button in front of the caption</description>
+		</property>	
+		<property key="emptyCaptionText" type="translatableString" required="false">
+			<caption>Empty Caption</caption>
+			<category>Appearance</category>
+			<description>The caption of the menu item to clear the selection, if empty clear menu item is not shown.</description>
+		</property>
+		<property key="readonly" type="enumeration" required="true" defaultValue="false">
+			<caption>Read-only</caption>
+			<category>Appearance</category>
+			<description>When does the button is set to be read-only</description>
+			<enumerationValues>
+				<enumerationValue key="true">True</enumerationValue>
+				<enumerationValue key="false">False</enumerationValue>
+				<enumerationValue key="conditional">Conditional</enumerationValue>
+			</enumerationValues>
+		</property>
+		<property key="readonlyConditional" type="attribute" required="false">
+			<caption>Condition read only attribute</caption>
+			<category>Appearance</category>
+			<description>If boolean is true the menu will be read only.</description>
+			<attributeTypes>
+				<attributeType name="Boolean"/>
+			</attributeTypes>
+		</property>
+                
+                <property key="buttonStyle" type="enumeration" required="true" defaultValue="default">
+			<caption>Button Style</caption>
+			<category>Appearance</category>
+			<description>The Boodstrap renderd style</description>
+			<enumerationValues>
+				<enumerationValue key="default">Default</enumerationValue>
+				<enumerationValue key="primary">Primary</enumerationValue>
+				<enumerationValue key="success">Success</enumerationValue>
+				<enumerationValue key="info">Info</enumerationValue>
+				<enumerationValue key="warning">Warning</enumerationValue>
+				<enumerationValue key="danger">Danger</enumerationValue>
+			</enumerationValues>
+		</property>
+		<property key="clearText" type="translatableString" required="false">
+			<caption>Clear Caption</caption>
+			<category>Appearance</category>
+			<description>The caption of the menu item to clear the selection, if empty the clear menu item is not shown.</description>
+		</property>
+		<property key="changeMicroflow" type="microflow" required="false">
+			<caption>On Change</caption>
+			<category>Behavior</category>
+			<description>This microflow will be invoked when the user selects an item in the menu</description>
+			<returnType type="Void"/>
+		</property>
+                <property key="clickMicroflow" type="microflow" required="false">
+			<caption>On Click</caption>
+			<category>Behavior</category>
+			<description>This microflow will be invoked when the clicks the left side of de button</description>
+			<returnType type="Void"/>
+		</property>
+                <property key="maxMenuItems" type="integer" defaultValue="1000">
+			<caption>Max Menu Items</caption>
+			<category>Behavior</category>
+			<description>Limit the menu items.</description>
+		</property>
+                <property key="maxMicroflow" type="microflow" required="false">
+			<caption>Max Microflow</caption>
+			<category>Behavior</category>
+			<description>This microflow will be invoked when menu is opened, but max items is exceded</description>
+			<returnType type="Void"/>
+		</property>
+                <property key="lazyLoading" type="boolean" defaultValue="true">
+			<caption>Lazy Loading</caption>
+			<category>Behavior</category>
+			<description>The items the menu will only be loaded on click</description>
+		</property>
+		<property key="entitynote" type="entity">
+			<caption>Source entity</caption>
+			<category>Data source</category>
+			<description>Context Entity type</description>
+		</property>
+		<property key="reference" type="entity" isPath="yes" pathType="reference" entityProperty="entitynote">
+			<caption>Entity path</caption>
+			<category>Data source</category>
+			<description>Entity path of the reference</description>
+		</property>
+		<property key="displayFormat" type="attribute" entityProperty="reference" required="false">
+			<caption>Attribute</caption>
+			<category>Data source</category>
+			<description>Attribute that will show as caption in the menu (could be empty)</description>
+			<attributeTypes>
+				<attributeType name="AutoNumber"/>
+				<attributeType name="Currency"/>
+				<attributeType name="Enum"/>
+				<attributeType name="Float"/>
+				<attributeType name="Integer"/>
+				<attributeType name="Long"/>
+				<attributeType name="String"/>
+			</attributeTypes>
+		</property>
+		<property key="recursive" type="boolean" defaultValue="false">
+			<caption>Recursive</caption>
+			<category>Menu</category>
+			<description>Recursive relation relates to its own entity type. Note that a recursive menu can have only one configuration level</description>
+		</property>
+		<property key="menuLevels" type="object" isList="true" required="true">
+			<caption>Menu Levels</caption>
+			<category>Menu</category>
+			<description>Levels Of the menu. Starting with the Enity that can be selected. Next level must related to the previous</description>
+			<properties>
+				<property key="refSourceEntity" type="entity"  required="true">
+					<caption>Menu entity</caption>
+					<category>Menu</category>
+					<description>Entity shown in menu</description>
+				</property>
+				<property key="menuReference" type="entity" isPath="yes" pathType="reference" entityProperty="refSourceEntity"  required="true">
+					<caption>Menu Entity path</caption>
+					<category>Menu</category>
+					<description>Entity path</description>
+				</property>
+				<property key="labelAttribute" type="attribute" entityProperty="menuReference"  required="true">
+					<caption>Menu Attribute</caption>
+					<category>Menu</category>
+					<description>Attribute displayed</description>
+					<attributeTypes>
+						<attributeType name="AutoNumber"/>
+						<attributeType name="Currency"/>
+						<attributeType name="Enum"/>
+						<attributeType name="Float"/>
+						<attributeType name="Integer"/>
+						<attributeType name="Long"/>
+						<attributeType name="String"/>
+					</attributeTypes>
+				</property>
+                                <property key="refSourceEntityConstraint" type="entityConstraint" entityProperty="refSourceEntity" required="false">
+                                        <caption>XPath Constraint</caption>
+                                        <category>Selectable Objects</category>
+                                        <description>The XPath constraint</description>
+                                </property>
+			</properties>
+		</property>
+		<property key="displayLabel" type="attribute" entityProperty="reference">
+			<caption>Item Label</caption>
+			<category>Menu</category>
+			<description>Attribute shown in the selectable level of the menu. * Not used in recursive menu</description>
+			<attributeTypes>
+				<attributeType name="AutoNumber"/>
+				<attributeType name="Currency"/>
+				<attributeType name="Enum"/>
+				<attributeType name="Float"/>
+				<attributeType name="Integer"/>
+				<attributeType name="Long"/>
+				<attributeType name="String"/>
+			</attributeTypes>
+		</property>
+		<property key="entityConstraint" type="entityConstraint" entityProperty="reference" required="false">
+			<caption>XPath Constraint</caption>
+			<category>Selectable Objects</category>
+			<description>The XPath constraint: Non recursive menu; constrain selectable objects. Recursive: constrain root node</description>
+		</property>
+	</properties>
+</widget>
