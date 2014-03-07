@@ -18,3 +18,8 @@
 .multiLevelMenu img {
     padding-right: 5px;
 }
+
+/* fix mendix bug container in container should not be auto*/
+.mx-dataview-content .mx-dataview-content {
+    overflow: visible;
+}

@@ -1,4 +1,4 @@
-mxui.dom.addCss(mx.moduleUrl('MultiLevelMenu') + 'widget/css/MulitLevelMenu.css');
+mxui.dom.addCss(mx.moduleUrl('MultiLevelMenu') + 'widget/ui/MulitLevelMenu.css');
 require(["dojo/dom-geometry"], function (domGeom) {
 
     MultiLevelMenu = {
@@ -62,41 +62,45 @@ require(["dojo/dom-geometry"], function (domGeom) {
         templatePath: dojo.moduleUrl("MultiLevelMenu", "widget/ui/MultiLevelMenu.html"),
         dataLoaded: false,
         loadingMenuNode: null,
-        
+        childCache: null,
+
         // ISSUE :
-        // in overflow menu bottom of page when still not at end of page
-        // Menu does not close, when other menu is opened
-        
+        // 
         // TODO: 
-        // Check option dojo template attach event
-    
-        
-        
+        // Make us dojo template attach event
+        //         
         // OPTIONAL:
         // different buttons: normal, split button, input,   
         // Add key escape event to close menu?  
-        // Split into 2 difference widgets : normal and recurive  
-        // Naviagation header in menu with entity name  <li class="nav-header">Organisation</li>
-        // close menus when mouse is moved on the cancas
-        
-        // DONE drop up and left based on screen posistion?  http://www.bootply.com/92442  
+        // Split into 2 difference widgets : normal and recursive  
+        // Navigation header in menu with entity name  <li class="nav-header">Organisation</li>
+        // Menu does not close, when other menu is opened, on leave menu close
+        // 
+        // DONE drop up and left based on screen position?  http://www.bootply.com/92442  
         // DONE test with large set of data
-        // DONE make max menu size input param
-        // DONE clear with list header and close button <li class="nav-header">List header<button type="button" class="close" data-dismiss="modal" aria-hidden="true">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½</button></li>
+        // DONE make max menu size input parameter
+        // DONE clear with list header and close button <li class="nav-header">List header<button type="button" class="close" data-dismiss="modal" aria-hidden="true">x</button></li>
         // DONE When max result, have a MF to be clicked to open an alternative.
-        // DONE render clear button as anchor. <a tabindex="-1" href="#">(clear cat)<button type="button" class="close">ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¯ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¿ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â½</button></a> //css a.clear{ padding-right: 8px};
+        // DONE render clear button as anchor. <a tabindex="-1" href="#">(clear cat)<button type="button" class="close">x</button></a> //css a.clear{ padding-right: 8px};
         // DONE add diveder above clear button  <li role="presentation" class="divider"></li>
-        // DONE make use of dojo templated
+        // DONE make use of dojo template
         // DONE disabled button looks strange
-        // DONE Bootstrap 3 menu should have precentation role <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+        // DONE Bootstrap 3 menu should have presentation role <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
         // DONE Lazy Loading
-        // DONE add mf for splitbutton
+        // DONE add mf for split button
         // DONE open submenu onclick too, make it mobile accessible.
         // DONE close open submenus on hover clear button.
         // DONE close open submenus when over over items that have no sub menu, while siblings have
-        // SOLVED Validate resilve menu does not work.
+        // FIXED Validate recursive menu does not work.
         // DONE Add loading menu to non recursive menu
-        // DONE Show not Show empty menu in on maxMf is triggerd in normal menu
+        // DONE Show not Show empty menu in on maxMf is triggered in normal menu
+        // DONE Add Schema to retrieve limited amount of data
+        // DONE Recursive child retrieve in 2 time instead of (n)        
+        // DONE in overflow menu bottom of page when still not at end of page
+        // FIXED Recursive Menu, with empty data keep showing 'loading'
+        // DONE validation message should not show in error menu
+        // FIXED on click position changes, sometime not placed on right spot, page width still extends
+
 
         postCreate: function () {
             this.selectEntity = this.reference.split("/")[1];
@@ -113,12 +117,12 @@ require(["dojo/dom-geometry"], function (domGeom) {
             var valid = this.validateConfig();
             if (valid === true) {
                 if (this.lazyLoading) {
-                    this.loadingMenuNode = this.loadingMenu()
+                    this.loadingMenuNode = this.loadingMenu();
                     this.btnGroup.appendChild(this.loadingMenuNode);
                 } else {
                     if (this.recursive === true) {
                         this.menuDataRecursive = [];
-                        this.loadMenuDataRecursive(null);
+                        mendix.lang.sequence(this, [this.loadMenuDataRecursiveChild, this.loadMenuDataRecursiveRoot]); // load child before parents  
                     } else {
                         this.loadMenuData();
                     }
@@ -132,7 +136,7 @@ require(["dojo/dom-geometry"], function (domGeom) {
             //start loading menu data
             if (this.recursive === true) {
                 this.menuDataRecursive = [];
-                this.loadMenuDataRecursive(null);
+                mendix.lang.sequence(this, [this.loadMenuDataRecursiveChild, this.loadMenuDataRecursiveRoot]); // load child before parents  
             } else {
                 this.loadMenuData();
             }
@@ -145,41 +149,40 @@ require(["dojo/dom-geometry"], function (domGeom) {
 
             var menu = evt.target.parentNode.parentNode;
             dojo.query("*", menu).removeClass('open'); //close others
-
+            var ww = window.innerWidth; // store windwos width before opening.
             dojo.addClass(evt.target.parentNode, 'open');
             var menupos = domGeom.position(evt.target.parentNode);
             var subMenu = dojo.query("ul", evt.target.parentNode)[0];
             var subMenupos = domGeom.position(subMenu);
 
-            // TODO issue, overflow: auto on mx-dataview-content should not happen on menu
-            // how can this best done in the CSS styling??
-            if ((subMenupos.x + subMenupos.w) + 30 > window.innerWidth) {
-                var newpos = -menupos.w;
-            } else {
-                var newpos = menupos.w;
+            if ((subMenupos.x + subMenupos.w) + 30 > ww) {
+                if (menupos.x - subMenupos.w > 0)
+                    dojo.setStyle(subMenu, "left", -subMenupos.w + "px");
+                else
+                    dojo.setStyle(subMenu, "left", -menupos.x + 15 + "px");
             }
-            dojo.setStyle(subMenu, "left", newpos + "px");
+
         },
 
 
         validateConfig: function () {
             // Validate the configuration of the widget made in the moddeler 
             if (dojo.version.major === 4) {
-                alert("This widget will not work in Mendix 4");
+                this.showValidationMessage("This widget will not work in Mendix 4");
                 throw "Mendix 5 widget in Mendix 4";
             }
             if (this.recursive === true && this.menuLevels.length > 1) {
-                alert("Configuration Error " + this.id + ": A recursive menu can only have one level");
+                this.showValidationMessage("Configuration Error " + this.id + ": A recursive menu can only have one level");
                 return false;
             }
             if (this.menuLevels[0].refSourceEntity !== this.selectEntity) {
-                alert("Configuration Error " + this.id + ": The first Menu level " + this.menuLevels[0].refSourceEntity + " should match the entity type of the data source " + this.targetReferece);
+                this.showValidationMessage("Configuration Error " + this.id + ": The first Menu level " + this.menuLevels[0].refSourceEntity + " should match the entity type of the data source " + this.targetReferece);
                 return false;
             }
             for (var i = 0; i < this.menuLevels.length; i++) {
                 if (i > 0) {
                     if (this.menuLevels[i].refSourceEntity !== this.menuLevels[i - 1].entity) {
-                        alert("Configuration Error " + this.id + ": The Menu level " + (i + 1) + " are is not matching the previous level. the enty " + this.menuLevels[i].refSourceEntity + " should be equal to " + this.menuLevels[i - 1].entity);
+                        this.showValidationMessage("Configuration Error " + this.id + ": The Menu level " + (i + 1) + " are is not matching the previous level. the enty " + this.menuLevels[i].refSourceEntity + " should be equal to " + this.menuLevels[i - 1].entity);
                         return false;
                     }
                 }
@@ -187,39 +190,91 @@ require(["dojo/dom-geometry"], function (domGeom) {
             return true;
         },
 
-        loadMenuDataRecursive: function (parentMenu) {
-            // retreive the data of the menu. 
-            if (parentMenu === null) { // root of the menu first
-                mx.data.get({
-                    xpath: "//" + this.selectEntity + this.entityConstraint,
-                    filter: {
-                        sort: [
-                            [this.menuLevels[0].labelAttribute, "asc"]
-                        ],
-                        offset: 0,
-                        amount: this.maxMenuItems + 1
-                    },
-                    callback: dojo.hitch(this, this.cbLoadMenuDataRecursive, parentMenu),
-                    error: function (error) {
-                        console.error("Error in loadMenuDataRecursive : " + error.description);
+        showValidationMessage: function (msg) {
+            dojo.style(this.validationDiv, "display", "block");
+            this.validationDiv.innerHTML = msg;
+            // mx add also error parent node 
+        },
+
+        loadMenuDataRecursiveChild: function (callback) {
+            var references = {};
+            references[this.menuLevels[0].reference] = {
+                attributes: [this.menuLevels[0].labelAttribute]
+            };
+
+            mx.data.get({
+                xpath: "//" + this.menuLevels[0].refSourceEntity + this.menuLevels[0].refSourceEntityConstraint,
+                filter: {
+                    attributes: [this.menuLevels[0].labelAttribute],
+                    references: references,
+                    sort: [
+                        [this.menuLevels[0].labelAttribute, "asc"]
+                    ],
+                    offset: 0,
+                    amount: this.maxMenuItems + 1
+                },
+                callback: dojo.hitch(this, function (objs) {
+                    this.buildCacheTable(objs);
+                    callback();
+                }),
+                error: function (error) {
+                    console.error("Error in loadMenuDataRecursive: " + error.description);
+                    callback();
+                }
+            });
+        },
+        loadMenuDataRecursiveRoot: function (callback) {
+            var references = {};
+            references[this.menuLevels[0].reference] = {
+                attributes: []
+            };
+
+            mx.data.get({
+                xpath: "//" + this.selectEntity + this.entityConstraint,
+                filter: {
+                    attributes: [this.menuLevels[0].labelAttribute],
+                    references: references,
+                    sort: [
+                        [this.menuLevels[0].labelAttribute, "asc"]
+                    ],
+                    offset: 0,
+                    amount: this.maxMenuItems + 1
+                },
+                callback: dojo.hitch(this, this.cbLoadMenuDataRecursive, null),
+                error: function (error) {
+                    console.error("Error in loadMenuDataRecursive : " + error.description);
+                }
+            });
+
+
+            callback && callback();
+        },
+
+        buildCacheTable: function (objs) {
+            this.childCache = [];
+            for (var i = 0; i < objs.length; i++) {
+                var guid = objs[i].getReference(this.menuLevels[0].reference);
+                if (guid) { // has parent
+                    if (guid in this.childCache) {
+                        this.childCache[guid].push(objs[i]);
+                    } else {
+                        this.childCache[guid] = [objs[i]];
                     }
-                });
-            } else {
-                mx.data.get({
-                    xpath: "//" + this.menuLevels[0].refSourceEntity + "[" + this.menuLevels[0].reference + " = \"" + parentMenu.guid + "\"]" + this.menuLevels[0].refSourceEntityConstraint,
-                    filter: {
-                        sort: [
-                            [this.menuLevels[0].labelAttribute, "asc"]
-                        ],
-                        offset: 0,
-                        amount: this.maxMenuItems + 1
-                    },
-                    callback: dojo.hitch(this, this.cbLoadMenuDataRecursive, parentMenu),
-                    error: function (error) {
-                        console.error("Error in loadMenuDataRecursive: " + error.description);
-                    }
-                });
+                }
             }
+        },
+
+        filter: function (parentMenu) {
+            if (parentMenu.guid in this.childCache) {
+                return this.childCache[parentMenu.guid];
+            } else {
+                return [];
+            }
+        },
+
+        // retreive the data of the menu. 
+        loadMenuDataRecursive: function (parentMenu) {
+            this.cbLoadMenuDataRecursive(parentMenu, this.filter(parentMenu));
         },
 
         cbLoadMenuDataRecursive: function (parentMenu, objs) {
@@ -236,24 +291,31 @@ require(["dojo/dom-geometry"], function (domGeom) {
                     childeren: null,
                     loaded: false
                 };
-
                 childMenus.push(subMenu);
-                this.loadMenuDataRecursive(subMenu);
                 if (parentMenu === null) { // root menu does not have parents.
                     this.menuDataRecursive = childMenus;
                 } else {
                     parentMenu.childeren = childMenus;
                 }
             }
+            for (var i = 0; i < childMenus.length; i++) {
+                this.cbLoadMenuDataRecursive(childMenus[i], this.filter(childMenus[i]));
+            }
+
             if (objs.length === 0) {
-                parentMenu.loaded = true;
-                this.checkMenuComplete();
+                if (!parentMenu) { // is empty root
+                    this.appendMenu([]);
+                } else {
+                    parentMenu.loaded = true;
+                    this.checkMenuComplete();
+                }
             }
         },
 
         checkMenuComplete: function () {
             // when complete attach menu to button
-            if (this.checkMenuCompleteRecrusive(this.menuDataRecursive)) {
+            if (!this.rendering && this.checkMenuCompleteRecrusive(this.menuDataRecursive)) {
+                this.rendering = true;
                 this.appendMenu(this.menuDataRecursive);
             }
         },
@@ -273,9 +335,15 @@ require(["dojo/dom-geometry"], function (domGeom) {
 
         loadMenuData: function () {
             // load all data non recursive, load all leafs first
+            var references = {};
+            references[this.menuLevels[0].reference] = {
+                attributes: []
+            };
             mx.data.get({
                 xpath: "//" + this.selectEntity + this.entityConstraint,
                 filter: {
+                    attributes: [this.displayLabel],
+                    references: references,
                     sort: [
                         [this.displayLabel, "asc"]
                     ],
@@ -295,8 +363,8 @@ require(["dojo/dom-geometry"], function (domGeom) {
             var o = null;
             for (var i = 0; i < objs.length; i++) {
                 o = objs[i];
-                var parentIndex = o.get(this.menuLevels[level].reference);
-                if (parentIndex !== "") {
+                var parentIndex = o.get(this.menuLevels[level].reference).guid;
+                if (parentIndex) {
                     if (this.checkMenuSize())
                         return;
                     var menuItem = {
@@ -317,10 +385,15 @@ require(["dojo/dom-geometry"], function (domGeom) {
 
         getParentLevel: function (menuData, level) {
             //get the details of the parents
+            var references = {};
+            if (this.menuLevels.length > level + 1)
+                references[this.menuLevels[level + 1].reference] = {};
             var guids = Object.keys(menuData);
             mx.data.get({
                 guids: guids,
                 filter: {
+                    attributes: [this.menuLevels[level].labelAttribute],
+                    references: references,
                     sort: [
                         [this.menuLevels[level].labelAttribute, "asc"]
                     ],
@@ -394,7 +467,7 @@ require(["dojo/dom-geometry"], function (domGeom) {
 
                 this.connect(clearButton, 'onmouseenter', dojo.hitch(this, this.closeSubMenus, this.btnGroup));
                 this.connect(clearButton, "onclick", dojo.hitch(this, this.onClearSelect));
-                
+
                 menu.appendChild($("li", {
                     class: "divider"
                 }));
@@ -408,12 +481,12 @@ require(["dojo/dom-geometry"], function (domGeom) {
             if (this.lazyLoading)
                 dojo.destroy(this.loadingMenuNode);
         },
-        
-        closeSubMenus: function(menu){
+
+        closeSubMenus: function (menu) {
             //close subMenus of main menu.
             dojo.query("*", menu).removeClass('open');;
         },
-        
+
         getMenu: function (menuData) {
             // render the bootstrap drop down menus
             var $ = mxui.dom.create;
@@ -472,7 +545,6 @@ require(["dojo/dom-geometry"], function (domGeom) {
                         href: "#",
                         onclick: "return false"
                     }, 'Loading...')));
-
         },
 
         checkMenuSize: function () {
@@ -481,21 +553,18 @@ require(["dojo/dom-geometry"], function (domGeom) {
             if (this.counterMenuItem >= this.maxMenuItems && this.maxMicroflow) {
 
                 //TODO: Check is there any issue that this function is executed more than once?
-                if(this.lazyLoading)
+                if (this.lazyLoading)
                     this.execaction(this.maxMicroflow);
-                this.loadingMenuNode && dojo.destroy(this.loadingMenuNode)
+                this.loadingMenuNode && dojo.destroy(this.loadingMenuNode);
 
                 return true;
             }
             if (this.counterMenuItem >= this.maxMenuItems && !this.maxMicroflow) {
-                dojo.style(this.validationDiv, "display", "block");
-                this.validationDiv.innerHTML = "Error loading menu: to many items to display"; // make function for show hide msg
+                this.showValidationMessage("Error loading menu: to many items to display");
                 this.errorMenu = true;
-                if(this.loadingMenuNode)
+                if (this.loadingMenuNode)
                     dojo.destroy(this.loadingMenuNode);
-                logger.error("l menu has to many option to display");
-                console.error("c menu has to many option to display");
-                throw "tr menu has to many option to display";
+                throw " menu has to many option to display";
             }
             return false;
         },
@@ -524,15 +593,7 @@ require(["dojo/dom-geometry"], function (domGeom) {
         _setDisabledAttr: function (value) {
             this.isDisabled = !! value;
         },
-/*
-        onSubMenuClick: function (evt) {
-            // no action on link of Submenu Item click
-            if (evt) {
-                evt.preventDefault();
-                evt.stopPropagation();
-            }
-        },
-*/
+
         onItemSelect: function (evt) {
             // a menu item selection handler
             var item = dijit.getEnclosingWidget(evt.target);
@@ -584,10 +645,10 @@ require(["dojo/dom-geometry"], function (domGeom) {
                 this.imageNode.style.display = "none";
             }
             mxui.dom.html(this.label, "Button loading");
-            
+
             this.connect(this.dropDownButton, "onclick", dojo.hitch(this, this.toggle));
-            this.connect(this.button, "onclick", dojo.hitch(this, this.execaction, this.clickMicroflow));            
-            this.connect(document, "click", dojo.hitch(this, this.close));       
+            this.connect(this.button, "onclick", dojo.hitch(this, this.execaction, this.clickMicroflow));
+            this.connect(document, "click", dojo.hitch(this, this.close));
         },
 
         toggle: function (e) {
@@ -671,7 +732,7 @@ require(["dojo/dom-geometry"], function (domGeom) {
                 if (newLabel !== currentLabel)
                     mxui.dom.html(this.label, newLabel);
             } else {
-                if(this.captionText){                    
+                if (this.captionText) {
                     mxui.dom.html(this.label, this.captionText);
                 } else {
                     mxui.dom.html(this.label, "&nbsp;");
@@ -712,11 +773,9 @@ require(["dojo/dom-geometry"], function (domGeom) {
                     var field = fields[x];
                     var name = field.name;
                     var reason = field.reason;
-                    if (name === this.targetReferece) {
+                    if (name === this.targetReferece && !this.errorMenu) {
                         validations[i].removeAttribute(this.targetReferece);
-                        dojo.style(this.validationDiv, "display", "block");
-                        this.validationDiv.innerHTML = reason;
-                        // mx add also error parent node (not implemented no bootstrap class availble)
+                        this.showValidationMessage(reason);
                     }
                 }
             }
@@ -764,9 +823,9 @@ require(["dojo/dom-geometry"], function (domGeom) {
             mx.data.unsubscribe(this.handlerValidation);
             mx.data.unsubscribe(this.handlerReference);
             this.domNode && dojo.destroy(this.domNode);
-            logger.debug(this.id + ".uninitialize");
+            console.debug(this.id + ".uninitialize");
         }
 
     };
     mxui.widget.declare('MultiLevelMenu.widget.MultiLevelMenu', MultiLevelMenu);
-});;
+});
