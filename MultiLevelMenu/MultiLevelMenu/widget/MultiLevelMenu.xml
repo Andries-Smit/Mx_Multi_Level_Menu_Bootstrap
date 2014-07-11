@@ -19,27 +19,22 @@
 		<property key="emptyCaptionText" type="translatableString" required="false">
 			<caption>Empty Caption</caption>
 			<category>Appearance</category>
-			<description>The caption in the button shown when no item is selected.</description>
-		</property>
-		<property key="noMenuItemsCaption" type="translatableString" required="false">
-			<caption>No Menu Items Caption</caption>
-			<category>Appearance</category>
-			<description>The caption is shown when there are no items to display in the menu.</description>
+			<description>The caption of the menu item to clear the selection, if empty clear menu item is not shown.</description>
 		</property>
 		<property key="readonly" type="enumeration" required="true" defaultValue="false">
-			<caption>Editable</caption>
+			<caption>Read-only</caption>
 			<category>Appearance</category>
 			<description>When does the button is set to be read-only</description>
 			<enumerationValues>
-				<enumerationValue key="false">Default</enumerationValue>
-				<enumerationValue key="true">Never</enumerationValue>
-				<enumerationValue key="conditional">Conditionally</enumerationValue>
+				<enumerationValue key="true">True</enumerationValue>
+				<enumerationValue key="false">False</enumerationValue>
+				<enumerationValue key="conditional">Conditional</enumerationValue>
 			</enumerationValues>
 		</property>
 		<property key="readonlyConditional" type="attribute" required="false">
-			<caption>Condition Editable</caption>
+			<caption>Condition read only attribute</caption>
 			<category>Appearance</category>
-			<description>Context boolean attribute; when true the menu will be read only.</description>
+			<description>If boolean is true the menu will be read only.</description>
 			<attributeTypes>
 				<attributeType name="Boolean"/>
 			</attributeTypes>
@@ -86,26 +81,11 @@
 			<description>This microflow will be invoked when menu is opened, but max items is exceded</description>
 			<returnType type="Void"/>
 		</property>
-                <property key="prefetch" type="enumeration" required="true" defaultValue="onclickOnce">
-			<caption>Fetch data</caption>
+                <property key="lazyLoading" type="boolean" defaultValue="true">
+			<caption>Lazy Loading</caption>
 			<category>Behavior</category>
-			<description>If On Loading; items at of all levels of the menu will be pre-fetched. This improves the user experience, but requires more resources. Lazy (once): should be set to Lazy for very large datasets. On Click, loads data every time it is click needed when context is changing </description>
-			<enumerationValues>
-				<enumerationValue key="onload">On Loading</enumerationValue>
-				<enumerationValue key="onclick">On Click</enumerationValue>
-				<enumerationValue key="onclickOnce">Lazy (once)</enumerationValue>
-			</enumerationValues>
-		</property>                
-		<property key="parentSelectable" type="boolean" defaultValue="false">
-			<caption>Parent Selectable</caption>
-			<category>Behavior</category>
-			<description>On double click the parent is selected, normaly only the leafs are selectable (Recursive menu only)</description>
+			<description>The items the menu will only be loaded on click</description>
 		</property>
-		<property key="loadingText" type="string" required="false" defaultValue="Loading...">
-			<caption>Loading Text</caption>
-			<category>Appearance</category>
-			<description>The text in the menu when there are nog items in the menu.</description>
-		</property>   
 		<property key="entitynote" type="entity">
 			<caption>Source entity</caption>
 			<category>Data source</category>
@@ -168,12 +148,6 @@
                                         <caption>XPath Constraint</caption>
                                         <category>Selectable Objects</category>
                                         <description>The XPath constraint</description>
-                                </property>                                                                
-                                <property key="refDsMicroflow" type="microflow" required="false" entityProperty="../entitynote">
-                                        <caption>Data Source Microflow</caption>
-                                        <category>Selectable Objects</category>
-                                        <description>This Micoflow retreives all childs of root, of all levels. When a microflow is profiled the Xpath contraint is not applied(Recursive menu only)</description>
-                                        <returnType type="Object" isList="true" entityProperty="refSourceEntity"/>
                                 </property>
 			</properties>
 		</property>
@@ -195,12 +169,6 @@
 			<caption>XPath Constraint</caption>
 			<category>Selectable Objects</category>
 			<description>The XPath constraint: Non recursive menu; constrain selectable objects. Recursive: constrain root node</description>
-		</property>
-		<property key="dsMicroflow" type="microflow" required="false" entityProperty="entitynote">
-			<caption>Data Source Microflow</caption>
-			<category>Selectable Objects</category>
-			<description>Recursive: This Micoflow retreives the root nodes, when set the Xpath constraint is ignored!. Non recursive menus: retreive the leaf nodes(lowest level)</description>
-			<returnType type="Object" isList="true" entityProperty="reference"/>
 		</property>
 	</properties>
 </widget>
