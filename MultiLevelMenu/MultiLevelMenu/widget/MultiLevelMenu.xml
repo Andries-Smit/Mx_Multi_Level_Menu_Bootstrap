@@ -43,8 +43,7 @@
 			<attributeTypes>
 				<attributeType name="Boolean"/>
 			</attributeTypes>
-		</property>
-                
+		</property>             
                 <property key="buttonStyle" type="enumeration" required="true" defaultValue="default">
 			<caption>Button Style</caption>
 			<category>Appearance</category>
