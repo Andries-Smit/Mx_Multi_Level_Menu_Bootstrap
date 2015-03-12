@@ -56,8 +56,9 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                 }
             });
         } else {
+            var constraint = this.menuLevels[0].refSourceEntityConstraint.replace('[%CurrentObject%]', this.context.getGuid());  
             mx.data.get({
-                xpath: "//" + this.menuLevels[0].refSourceEntity + this.menuLevels[0].refSourceEntityConstraint,
+                xpath: "//" + this.menuLevels[0].refSourceEntity + constraint,
                 filter: {
                     attributes: [this.menuLevels[0].labelAttribute],
                     references: references,
@@ -99,8 +100,9 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                 }
             });
         } else {
+            var constraint = this.entityConstraint.replace('[%CurrentObject%]', this.context.getGuid()); 
             mx.data.get({
-                xpath: "//" + this.selectEntity + this.entityConstraint,
+                xpath: "//" + this.selectEntity + constraint,
                 filter: {
                     attributes: [this.menuLevels[0].labelAttribute],
                     references: references,
@@ -154,14 +156,14 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
             var subMenu = {
                 guid: o.getGuid(),
                 label: o.get(this.displayLabel),
-                childeren: null,
+                children: null,
                 loaded: false
             };
             childMenus.push(subMenu);
             if (parentMenu === null) { // root menu does not have parents.
                 this.menuDataRecursive = childMenus;
             } else {
-                parentMenu.childeren = childMenus;
+                parentMenu.children = childMenus;
             }
         }
         for (var i = 0; i < childMenus.length; i++) {
@@ -189,10 +191,10 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
     checkMenuCompleteRecrusive: function (menu) {
         // Checks if of all leafs are loaded
         for (var i = 0; i < menu.length; i++) {
-            if (menu[i].childeren === null && menu[i].loaded === false) {
+            if (menu[i].children === null && menu[i].loaded === false) {
                 return false;
-            } else if (menu[i].childeren !== null) {
-                if (!this.checkMenuCompleteRecrusive(menu[i].childeren))
+            } else if (menu[i].children !== null) {
+                if (!this.checkMenuCompleteRecrusive(menu[i].children))
                     return false;
             }
         }
@@ -219,8 +221,9 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                 }
             });
         } else {
+            var constraint = this.entityConstraint.replace('[%CurrentObject%]', this.context.getGuid()); 
             mx.data.get({
-                xpath: "//" + this.selectEntity + this.entityConstraint,
+                xpath: "//" + this.selectEntity + constraint,
                 filter: {
                     attributes: [this.displayLabel],
                     references: references,
@@ -254,7 +257,7 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                 var menuItem = {
                     guid: o.getGuid(),
                     label: o.get(this.displayLabel),
-                    childeren: null
+                    children: null
                 };
                 if (parentIndex in parents) { // append child
                     parents[parentIndex].push(menuItem);
@@ -306,7 +309,7 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                     var menuItem = {
                         guid: o.getGuid(),
                         label: o.get(this.menuLevels[level].labelAttribute),
-                        childeren: menuData[o.getGuid()]
+                        children: menuData[o.getGuid()]
                     };
                     if (parentIndex in parents) {
                         parents[parentIndex].push(menuItem);
@@ -326,7 +329,7 @@ dojo.declare("MultiLevelMenu.widget.MenuData", null, {
                 var menuItem = {
                     guid: o.getGuid(),
                     label: o.get(this.menuLevels[level].labelAttribute),
-                    childeren: menuData[o.getGuid()]
+                    children: menuData[o.getGuid()]
                 };
                 completeMenu.push(menuItem);
             }

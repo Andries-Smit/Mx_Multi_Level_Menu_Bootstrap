@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<widget id="MultiLevelMenu.widget.MultiLevelMenu" needsEntityContext="true" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ C:\Users\smita\Downloads\widget.xsd">
-	<name>MultiLevelMenu</name>
-	<description>Multi Level Menu</description>
-	<icon>
+<widget id="MultiLevelMenu.widget.MultiLevelMenu" needsEntityContext="true" xmlns="http://www.mendix.com/widget/1.0/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mendix.com/widget/1.0/ widget.xsd">
+    <name>MultiLevelMenu</name>
+    <description>Multi Level Menu</description>
+    <icon>
         iVBORw0KGgoAAAANSUhEUgAAABQAAAARCAYAAADdRIy+AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAImSURBVDhPrZPtS1NRHMf7q4Ig6EUvAqOMSJAiIigiCiR6E0QvkpCKJGHEfMJqttY2N+fmfNqYeyhds+tCt7I2s3SRFq0kH9ic+3Tu9V5d9y5C6Adf7uFy7ud8zu+es4f/XNtAb3RGSV/kLZ5wGncoRU9wCsdIkmeDElb/BN2+OI89L+hyx+h0Rmi3h2i1BQlLH1SKDnjyyn3qG5qpu3yX4xebqD3fyOGzNzh0+hoH669y4EQD+49dUoDyXDl7a85VB7qEUc2Z68p4YwPW12D5J3z7CrkFyGYhnYbkJMJ0XIHJ9VegvK19Ry5AGYpFWBPAHwK4tAQL85DJQGoaJiVwjkgKSEss+VGlVADl3sixeMd44o3z1J8Qi0zgHJZwB5N4Rqfoj0wzEHuDL5oiGH9PKJEl/GqWqDSnUiqAWoUSs+poq8qbUBItKAhruQ2rK6IVy5D/Dh32UXXWThmAgXGxN1G1R08p2a2xATj4fEZ5lkUvS6XdGxuAvnCKTQHTDPXG1ZLPb52GNlvICOwNvFbMCgXxp9eNxkXxXjZb0cxU2OIXMFsDRqBjSFJg2up648pswxbhcw5MliEj0OZ7+YeB3riamQyb/wQtXX4j0OIZY/XXzkd6Y3002Jw4ivc6vEbgQ5e4+PYw7aLBZmvQYFy5zZwGEzdPvpq3W3uNQH3pjfXb1GCZd3DrgevfQL2xqXuYlkcDNHf2c6etjyazWwHdNDloNDn5Den4mXpbnc8VAAAAAElFTkSuQmCC
     </icon>
 	<properties>
@@ -20,11 +20,17 @@
 			<caption>Empty Caption</caption>
 			<category>Appearance</category>
 			<description>The caption in the button shown when no item is selected.</description>
+                        <translations>
+                            <translation lang="en_US">( Nothing is selected. )</translation>
+                        </translations>
 		</property>
 		<property key="noMenuItemsCaption" type="translatableString" required="false">
 			<caption>No Menu Items Caption</caption>
 			<category>Appearance</category>
 			<description>The caption is shown when there are no items to display in the menu.</description>
+                        <translations>
+                            <translation lang="en_US">No items available for selection.</translation>
+                        </translations>                        
 		</property>
 		<property key="readonly" type="enumeration" required="true" defaultValue="false">
 			<caption>Editable</caption>
@@ -47,7 +53,7 @@
                 <property key="buttonStyle" type="enumeration" required="true" defaultValue="default">
 			<caption>Button Style</caption>
 			<category>Appearance</category>
-			<description>The Boodstrap renderd style</description>
+			<description>The Boodstrap rendered style</description>
 			<enumerationValues>
 				<enumerationValue key="default">Default</enumerationValue>
 				<enumerationValue key="primary">Primary</enumerationValue>
@@ -61,6 +67,9 @@
 			<caption>Clear Caption</caption>
 			<category>Appearance</category>
 			<description>The caption of the menu item to clear the selection, if empty the clear menu item is not shown.</description>
+                        <translations>
+                            <translation lang="en_US">( Clear Selection )</translation>
+                        </translations>
 		</property>
 		<property key="changeMicroflow" type="microflow" required="false">
 			<caption>On Change</caption>
@@ -98,12 +107,28 @@
 		<property key="parentSelectable" type="boolean" defaultValue="false">
 			<caption>Parent Selectable</caption>
 			<category>Behavior</category>
-			<description>On double click the parent is selected, normaly only the leafs are selectable (Recursive menu only)</description>
+			<description>On double click the parent is selected, normally only the leafs are selectable (Recursive menu only)</description>
+		</property>                
+		<property key="searchEnabled" type="boolean" defaultValue="false">
+			<caption>Enable Search</caption>
+			<category>Behavior</category>
+			<description>Place search filter the in menu.</description>  
 		</property>
-		<property key="loadingText" type="string" required="false" defaultValue="Loading...">
+                <property key="noResultCaption" type="translatableString" required="true">
+			<caption>No Search result Caption</caption>
+			<category>Appearance</category>
+			<description>This text is displayed when no items are found in the search</description>                      
+                        <translations>
+                            <translation lang="en_US">No search results.</translation>
+                        </translations>
+		</property>
+		<property key="loadingText" type="translatableString" required="false" >
 			<caption>Loading Text</caption>
 			<category>Appearance</category>
-			<description>The text in the menu when there are nog items in the menu.</description>
+			<description>The text in the menu when there are no items in the menu.</description>
+                        <translations>
+                            <translation lang="en_US">Loading...</translation>
+                        </translations>
 		</property>   
 		<property key="entitynote" type="entity">
 			<caption>Source entity</caption>
@@ -137,7 +162,7 @@
 		<property key="menuLevels" type="object" isList="true" required="true">
 			<caption>Menu Levels</caption>
 			<category>Menu</category>
-			<description>Levels Of the menu. Starting with the Enity that can be selected. Next level must related to the previous</description>
+			<description>Levels Of the menu. Starting with the Entity that can be selected. Next level must related to the previous</description>
 			<properties>
 				<property key="refSourceEntity" type="entity"  required="true">
 					<caption>Menu entity</caption>
@@ -171,7 +196,7 @@
                                 <property key="refDsMicroflow" type="microflow" required="false" entityProperty="../entitynote">
                                         <caption>Data Source Microflow</caption>
                                         <category>Selectable Objects</category>
-                                        <description>This Micoflow retreives all childs of root, of all levels. When a microflow is profiled the Xpath contraint is not applied(Recursive menu only)</description>
+                                        <description>This Micoflow retrieves all children of root, of all levels. When a microflow is profiled the Xpath constraint is not applied(Recursive menu only)</description>
                                         <returnType type="Object" isList="true" entityProperty="refSourceEntity"/>
                                 </property>
 			</properties>
@@ -198,7 +223,7 @@
 		<property key="dsMicroflow" type="microflow" required="false" entityProperty="entitynote">
 			<caption>Data Source Microflow</caption>
 			<category>Selectable Objects</category>
-			<description>Recursive: This Micoflow retreives the root nodes, when set the Xpath constraint is ignored!. Non recursive menus: retreive the leaf nodes(lowest level)</description>
+			<description>Recursive: This Micoflow retrieves the root nodes, when set the Xpath constraint is ignored!. Non recursive menus: retrieve the leaf nodes(lowest level)</description>
 			<returnType type="Object" isList="true" entityProperty="reference"/>
 		</property>
 	</properties>

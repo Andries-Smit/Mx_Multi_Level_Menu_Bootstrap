@@ -1,8 +1,8 @@
 // JSLint options:
 /*global dojo, require, mxui, mendix, dijit */
 mxui.dom.addCss(require.toUrl("MultiLevelMenu/widget/ui/MulitLevelMenu.css"));
-require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGeom, menuData) {
-    //"use strict";  can not use strict mode due to buildRending: this.inherited(arguments);
+require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "dojo/aspect", "dijit/form/TextBox", "dojo/NodeList-traverse"], function (domGeom, menuData, win, aspect, TextBox) {
+    //"use strict";  cannot use strict mode due to buildRending: this.inherited(arguments);
     var MultiLevelMenu = {
         mixins: [mendix.addon._Contextable, dijit._TemplatedMixin],
         inputargs: {
@@ -24,6 +24,8 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             maxMicroflow: "",
             prefetch: "onclickOnce",
             parentSelectable: "true",
+            searchEnabled: false,
+            
             //data source   
             entitynote: "",
             reference: "",
@@ -50,10 +52,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
         isInactive: false,
         isDisabled: false,
         selectEntity: "",
-        targetReferece: "",
-        handler: null,
-        handlerReference: null,
-        handlerValidation: null,
+        targetReference: "",
         counterMenuItem: 0,
         errorMenu: false,
         shown: false,
@@ -63,27 +62,42 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
         noMenuItemsNode: null,
         menuNode: null,
         dataSource: null,
+        wrapperNode: null,
+        searchInput: null,
+        noResultNode: null,  
         
-        // templated variable
+        //handles
+        handler: null,
+        handlerReference: null,
+        handlerValidation: null,
+        scrollHandle: null,
+        resizeHandle: null,
+        scrollTimer: null,
+        resizeTimer: null,
+        searchTimer: null,
+        
+        // template  variables
         domNode: null,
         label: null,
         btnGroup: null,
         imageNode: null,
         dropDownButton: null,
         button: null,
-        validationDiv: null,        
-        
+        validationDiv: null,   
         
         // Author: Andries Smit
         // Organisation: Flock of Birds
-        // Date 15 July 2014
-        // Version 2.0
+        // Version 2.1
+        // Date 11 March 2015
         // 
         // KNOW ISSUES :
+        // If menu has submenus no scrollbar will be shown.
+        // Auto close menu with timer on leave does not work.
+        // Overflow of menu in .mx-layoutcontainer-wrapper can be shown by scrolling/resizing. If the scroll bar is in another element the menu does not move.
         // 
         // TODO: 
         // Make us dojo template attach event
-        // Inline-block button and menu button (Will wrap when with is to long.)
+        // TODO loop trough each level could be more efficient
         //                
         // OPTIONAL:
         // different buttons: normal, split button, input,   
@@ -121,6 +135,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
         // ADDED If button click mf render as Split Button else as normal Button
         // ADDED Split widget into data source and widget file
         // ADDED Timer to close menu on leave
+        // FIXED Inline-block button and menu button (Will wrap when with is to long.)
+        // ADDED Moved menu to div in body, so it can  overlap pop ups and control bars (thanks to Joost Stapersma)
+        // ADDED Scroll in sub menu (that does not have a sub menu)
+        // ADDED Filter Search options to limit the list.
+        // ADDED Default caption in the xml for translatable strings.
         
         buildRendering: function () {
             // select a templated based on widget settings
@@ -142,9 +161,14 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             this.noMenuItemsNode = null;
             this.menuNode = null;
             this.dataSource = null;
+            this.scrollHandle = null;
+            this.resizeHandle = null;
+            this.scrollTimer = null,
+            this.resizeTimer = null,
+            this.searchInput = null,
         
             this.selectEntity = this.reference.split("/")[1];
-            this.targetReferece = this.reference.split("/")[0];
+            this.targetReference = this.reference.split("/")[0];
             this.dataSource = new menuData({
                 "menuLevels": this.menuLevels,
                 "maxMenuItems": this.maxMenuItems,
@@ -190,12 +214,23 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                     dojo.setStyle(subMenu, "left", -subMenupos.w + "px");
                 else
                     dojo.setStyle(subMenu, "left", -menupos.x + 15 + "px");
+            }     
+            
+            var winh = win.getBox().h;            
+            if(winh < (subMenupos.y + subMenupos.h)){
+                if (winh > (subMenupos.h +10))
+                    dojo.setStyle(subMenu, "top", winh - (subMenupos.y + subMenupos.h) -10   + "px");
+                else
+                    dojo.setStyle(subMenu, "top", -winh  + "px");                    
             }
-
         },
 
         validateConfig: function () {
             // Validate the configuration of the widget made in the modeller 
+            if (this.parentSelectable && this.recursive === false){
+                console.warn("Mulitlevel Menu; setting Parent Selectable can only be used in combination with the recursive menu");
+                this.parentSelectable = false; // need to set to false for search function
+            }
             if (dojo.version.major === 4) {
                 this.showValidationMessage("This widget will not work in Mendix 4");
                 throw "Mendix 5 widget in Mendix 4";
@@ -205,13 +240,13 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                 return false;
             }
             if (this.menuLevels[0].refSourceEntity !== this.selectEntity) {
-                this.showValidationMessage("Configuration Error " + this.id + ": The first Menu level " + this.menuLevels[0].refSourceEntity + " should match the entity type of the data source " + this.targetReferece);
+                this.showValidationMessage("Configuration Error " + this.id + ": The first Menu level " + this.menuLevels[0].refSourceEntity + " should match the entity type of the data source " + this.targetReference);
                 return false;
             }
             for (var i = 0; i < this.menuLevels.length; i++) {
                 if (i > 0) {
                     if (this.menuLevels[i].refSourceEntity !== this.menuLevels[i - 1].entity) {
-                        this.showValidationMessage("Configuration Error " + this.id + ": The Menu level " + (i + 1) + " are is not matching the previous level. the enty " + this.menuLevels[i].refSourceEntity + " should be equal to " + this.menuLevels[i - 1].entity);
+                        this.showValidationMessage("Configuration Error " + this.id + ": The Menu level " + (i + 1) + " are is not matching the previous level. the entity " + this.menuLevels[i].refSourceEntity + " should be equal to " + this.menuLevels[i - 1].entity);
                         return false;
                     }
                 }
@@ -227,13 +262,30 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
         },
 
         appendMenu: function (menuData) {
-            // add the menus to the button and append clear, will be called by data source, when completed
-            var menu = this.getMenu(menuData);
-            if (menuData.length === 0 && this.noMenuItemsCaption !== "") {
-                menu.appendChild(this.noMenuItemsMenu());
+            // add the menus to the button and append clear, will be called by data source, when completed            
+            var menu = this.getMenu(menuData);            
+            
+            var $ = mxui.dom.create;
+            if( this.searchEnabled ){
+                this.searchInput = new TextBox({
+                    name: "menuSearch",
+                    class: "searchInput",
+                    onClick: function(e){dojo.stopEvent(e);},
+                    onKeyUp: dojo.hitch(this,function(){
+                        //timer on update for better performance
+                        if(this.scrollTimer)
+                            clearTimeout(this.searchTimer);
+                        this.searchTimer = setTimeout(dojo.hitch(this, this.filterList, menu), 50);                        
+                    })
+                });
+                
+                var filter = $("form", {"class" : "filterform"}, this.searchInput.domNode);
+                dojo.place(filter, menu, "first");
+                this.noResultNode = $("li", {"class" : "no-result hidden", "role": "presentation"}, this.noResultCaption);
+                menu.appendChild( this.noResultNode );
             }
-            if (this.clearText !== "") {
-                var $ = mxui.dom.create;
+               
+            if (this.clearText !== "") {                
                 var clearButton = $("a", {
                     tabindex: "-1",
                     href: "#"
@@ -249,15 +301,134 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                     class: "divider"
                 }));
                 var listItem = $("li", {
-                    class: "nav-header"
+                    class: "nav-header clearSelection"
                 }, clearButton);
                 menu.appendChild(listItem);
-            }
-            this.btnGroup.appendChild(menu);
+            }            
+            
             this.menuNode = menu;
-            this.dataLoaded = true;
+            this.dataLoaded = true;            
             if (this.prefetch === "onclickOnce" || this.prefetch === "onclick")
                 dojo.destroy(this.loadingMenuNode);
+                
+            // Create wrapper node containing the ul with the menu data
+            if (this.wrapperNode)
+                dojo.destroy(this.wrapperNode);
+                        
+            this.wrapperNode= $("div", {
+                class: "mlMenuDataContainer"            	
+            });         
+            this.wrapperNode.appendChild(menu);
+                                    
+            //calculate wrapper node position and append to body
+            document.body.appendChild(this.wrapperNode);				
+            this.positionDropdown(this.wrapperNode);
+            this.searchInput && this.searchInput.focus();
+        },
+        
+        filterList: function(menu){
+            this.closeSubMenus(menu);
+            var value = this.searchInput.get("value").toLowerCase().replace(/['"]+/g, '');
+            if(value){
+                // find all (data) items that do not match the value, exclude the standard menu items, and hide them.
+                var cssFilter = 'li:not(.hidden):not(.no-result):not(.divider):not(.clearSelection) > a:not(a[search-data*="' + value + '"])'; 
+                // filter only on submenus when parents are selectable
+                if(! this.parentSelectable) cssFilter += ':not(.subMenu)'; 
+                var list = dojo.query(cssFilter, menu);
+                list.parent().addClass("hidden");
+                // find all items that match and show them (unhide)
+                cssFilter = 'li.hidden > a[search-data*="' + value + '"]';                     
+                list = dojo.query(cssFilter, menu);
+                list.parent().removeClass("hidden");
+                var parentSelectable = this.parentSelectable;
+                for(var i=0; i < 5 ; i++){
+                    // TODO loop trough each level could be more efficient
+                    // Check for each submenu if it should be shown
+                    list = dojo.query(".dropdown-submenu", menu).forEach(function(subMenuNode){
+                        // find submenu has item that are not hidden.
+                        var subItemsVis = dojo.query("li:not(.hidden)",subMenuNode);
+                        if(subItemsVis.length > 0){ // has items, so show
+                                dojo.removeClass(subMenuNode, "hidden");
+                                parentSelectable && dojo.removeClass(subMenuNode, "hidden-submenu");
+                        } else {
+                            if(parentSelectable){ 
+                                // this is sub menu selectable but has no sub menu items, so hide only the sub menu
+                                dojo.addClass(subMenuNode, "hidden-submenu");
+                            } else {
+                                // sub menu is not selectable and has not children, so should be hidden
+                                dojo.addClass(subMenuNode, "hidden");                                
+                            }
+                        }
+                    });
+                }
+                // find if there are still some items left after the search
+                list = dojo.query(">li:not(.hidden):not(.no-result):not(.divider):not(.clearSelection)",menu);
+
+                if(list.length === 0)
+                    dojo.removeClass(this.noResultNode, "hidden");
+                else 
+                    dojo.addClass(this.noResultNode, "hidden");
+            } else { 
+                // no search, so remove all classes to make them hidden. 
+                dojo.query("li.hidden", menu).removeClass("hidden");
+                dojo.query("li.hidden-submenu", menu).removeClass("hidden-submenu");
+                dojo.addClass(this.noResultNode, "hidden");
+            }  
+        },
+        
+        positionDropdown: function (node){            
+            if(this.shown === true){
+                if(!this.scrollHandle){
+                    var panel = dojo.query(this.domNode).closest(".mx-layoutcontainer-wrapper");
+                    if(panel.length > 0){
+                        this.scrollHandle = dojo.on(panel, "scroll", dojo.hitch(this, function(){
+                            //timer on update for better performance
+                            if(this.scrollTimer)
+                                clearTimeout(this.scrollTimer);
+                            this.scrollTimer = setTimeout(dojo.hitch(this, this.positionDropdown, this.wrapperNode), 50);
+
+                        } ));
+                    }
+                }
+                if(!this.resizeHandle){
+                    var panel = dojo.query(this.domNode).closest(".mx-layoutcontainer-wrapper");
+                    if(panel.length > 0){
+                        this.resizeHandle = aspect.after(this.mxform, "resize", dojo.hitch(this, function(){
+                            if(this.resizeTimer)
+                                clearTimeout(this.resizeTimer);
+                            this.resizeTimer = setTimeout(dojo.hitch(this, this.positionDropdown, this.wrapperNode), 50);                            
+                        } ));    
+                    }
+                }                
+            }else {
+                this.scrollHandle && this.scrollHandle.remove();
+                this.resizeHandle && this.resizeHandle.remove();            
+            }
+            if (node && this.shown === true) {
+                dojo.addClass(node, "open");
+            }
+            //positions the wrapper node relative to button
+            var btnPos = domGeom.position(this.btnGroup); 
+
+            dojo.setStyle(node, "left", btnPos.x  + "px");
+            dojo.setStyle(node, "top", (btnPos.y + btnPos.h)  + "px");
+            if(node.firstChild){
+                var menupos = domGeom.position(node.firstChild), winh = win.getBox().h;
+                if(this.elementInView(this.btnGroup)){
+                    if(winh < (menupos.y + menupos.h)){
+                            dojo.setStyle(node, "left", btnPos.x + 10 + "px");
+                        if (winh > (menupos.h +10))
+                            dojo.setStyle(node, "top", (winh - menupos.h -20)   + "px");
+                        else
+                            dojo.setStyle(node, "top", 0  + "px");                    
+                    }
+                } else {
+                    if(winh < (menupos.y + menupos.h)){
+                        dojo.setStyle(node, "left", btnPos.x + 10 + "px");
+                        dojo.setStyle(node, "top", (btnPos.y - menupos.h)   + "px");
+                    }
+                }
+            }
         },
 
         closeSubMenus: function (menu) {
@@ -267,27 +438,39 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
         getMenu: function (menuData) {
             // render the bootstrap drop down menus
-            var $ = mxui.dom.create;
+            var $ = mxui.dom.create;         
 
             var menu = $("ul", {
                 class: "dropdown-menu",
                 role: "menu"
-            });
+            });            
+            var hasSubmenu = false;
             for (var i = 0; i < menuData.length; i++) {
-                if (menuData[i].childeren !== null) {
-                    var subMenu = this.getMenu(menuData[i].childeren);
+                if (menuData[i].children !== null) {
+                    hasSubmenu = true;
+                    var subMenu = this.getMenu(menuData[i].children);
 
                     var subLink = $("a", {
                         tabindex: "-1",
                         href: "#",
-                        mxGUID: menuData[i].guid
+                        mxGUID: menuData[i].guid,
+                        class: "subMenu",
+                        "search-data" : menuData[i].label.toLowerCase().replace(/['"]+/g, '')
                     });
                     mxui.dom.html(subLink, menuData[i].label);
 
                     this.connect(subLink, "onclick", dojo.hitch(this, this.onSubMenuEnter));
                     this.connect(subLink, 'onmouseenter', dojo.hitch(this, this.onSubMenuEnter));
-                    if(this.parentSelectable)
+                    if(this.parentSelectable){
                         this.connect(subLink, "ondblclick", dojo.hitch(this, this.onItemSelect));
+                        this.connect(subLink, "onclick", dojo.hitch(this, function(link, e){
+                            if(dojo.hasClass(link.parentNode, "hidden-submenu")){
+                                // in search mode the parent can be selected with a single click.
+                                this.onItemSelect(e);
+                                dojo.stopEvent(e);
+                            }
+                        }, subLink));
+                    }
                     var listItem = $("li", {
                         role: "presentation",
                         class: "dropdown-submenu"
@@ -297,8 +480,9 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
                 } else {
                     var subLink = $("a", {
-                        href: "#",
-                        mxGUID: menuData[i].guid
+                        "href": "#",
+                        "mxGUID": menuData[i].guid,
+                        "search-data" : menuData[i].label.toLowerCase().replace(/['"]+/g, '')
                     });
                     mxui.dom.html(subLink, menuData[i].label);
                     var listItem = $("li", {
@@ -309,6 +493,12 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                     menu.appendChild(listItem);
                 }
             }
+            if( ! hasSubmenu ){
+                dojo.addClass(menu, "scrollable-menu");
+            }
+            if (menuData.length === 0 && this.noMenuItemsCaption !== "") {
+                menu.appendChild(this.noMenuItemsMenu());
+            }            
             return menu;
         },
 
@@ -344,7 +534,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             this.counterMenuItem++;
             if (this.counterMenuItem >= this.maxMenuItems && this.maxMicroflow) {
                 if (this.prefetch === "onclickOnce" || this.prefetch === "onclick")
-                    this.execaction(this.maxMicroflow);
+                    this.execution(this.maxMicroflow);
                 this.loadingMenuNode && dojo.destroy(this.loadingMenuNode);
 
                 return true;
@@ -360,7 +550,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             return false;
         },
 
-        execaction: function (mf) {
+        execution: function (mf) {
             // execute a MF
             if (mf) {
                 mx.data.action({
@@ -374,7 +564,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                     },
                     callback: function (obj) {},
                     error: function (error) {
-                        console.error("Error in execaction: " + error.description);
+                        console.error("Error in execution: " + error.description);
                     }
                 });
             }
@@ -389,12 +579,12 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             // a menu item selection handler
             var mxGUID = dojo.getAttr(evt.target, "mxGUID");
 
-            mxGUID && this.context.set(this.targetReferece, mxGUID);
+            mxGUID && this.context.set(this.targetReference, mxGUID);
 
             this.updateButtonLabel();
             this.close();
 
-            this.execaction(this.changeMicroflow);
+            this.execution(this.changeMicroflow);
             if (evt) {
                 evt.preventDefault();
                 evt.stopPropagation();
@@ -403,11 +593,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
         onClearSelect: function (evt) {
             // clear data selection in Mx object and label
-            this.context.set(this.targetReferece, "");
+            this.context.set(this.targetReference, "");
 
             this.updateButtonLabel();
             this.close();
-            this.execaction(this.changeMicroflow);
+            this.execution(this.changeMicroflow);
             if (evt) {
                 evt.preventDefault();
                 evt.stopPropagation();
@@ -424,7 +614,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             mxui.dom.html(this.label, "Button loading");
 
             this.connect(this.dropDownButton, "onclick", dojo.hitch(this, this.toggle));
-            this.button && this.connect(this.button, "onclick", dojo.hitch(this, this.execaction, this.clickMicroflow));   
+            this.button && this.connect(this.button, "onclick", dojo.hitch(this, this.execution, this.clickMicroflow));   
             this.connect(document, "click", dojo.hitch(this, this.close));
         },
 
@@ -436,7 +626,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             if (this.counterMenuItem < this.maxMenuItems || this.prefetch === "onclick") {
                 this.isOpen() ? this.close() : this.open();
             } else {
-                this.execaction(this.maxMicroflow);
+                this.execution(this.maxMicroflow);
             }
             if (e) {
                 e.preventDefault();
@@ -462,16 +652,32 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                 this.setLoadingMenu();
                 this.dataSource.loadData();
             }
-             this.closeHandler = this.connect(this.domNode, "onmouseleave", dojo.hitch(this, function(){
-                this.timer = setTimeout(dojo.hitch(this,function(){
-                    this.disconnect(this.closeHandler); 
-                    this.disconnect(this.stayOpenHandler); 
-                    this.close();}),1000);
-            }));
-            this.stayOpenHandler = this.connect(this.domNode, "onmouseenter", dojo.hitch(this, function(){
-                clearTimeout(this.timer);
-            }));
-            this.shown = true;
+                        
+            this.shown = true;            
+            if (this.wrapperNode) {
+                // TODO close time out does not work anymore
+                 this.stayOpenHandler = this.connect(this.domNode, "onmouseenter", dojo.hitch(this, function(){
+                    clearTimeout(this.timer);
+                }));
+                this.closeHandler = this.connect(this.wrapperNode.firstChild, "onblur", dojo.hitch(this, function(){
+                    this.timer = setTimeout(dojo.hitch(this,function(){
+                        this.disconnect(this.closeHandler); 
+                        this.disconnect(this.stayOpenHandler); 
+                        this.close();}),1000);
+                }));
+                this.positionDropdown(this.wrapperNode);
+            }    
+            this.searchInput && this.searchInput.focus();
+        },
+        
+        elementInView : function(el){
+            var rect = el.getBoundingClientRect();
+            return (
+                rect.top >= 0 &&
+                rect.left >= 0 &&
+                rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /*or $(window).height() */
+                rect.right <= (window.innerWidth || document.documentElement.clientWidth) /*or $(window).width() */
+            );
         },
 
         close: function () {
@@ -479,7 +685,13 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             if (this.domIsDisabled()) {
                 return false;
             }
-            this.isOpen() && dojo.query("*", this.domNode).removeClass('open');
+            if(this.isOpen()){
+                dojo.query("*", this.domNode).removeClass('open');
+                if(this.wrapperNode){
+                    dojo.removeClass(this.wrapperNode, 'open');
+                    dojo.query("*", this.wrapperNode).removeClass('open');
+                }
+            }            
             this.shown = false;
         },
 
@@ -495,9 +707,9 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
         updateButtonLabel: function () {
             // get the data of the new button label
-            if (this.context.get(this.targetReferece) !== "") {
+            if (this.context.get(this.targetReference) !== "") {
                 mx.data.get({
-                    guid: this.context.get(this.targetReferece),
+                    guid: this.context.get(this.targetReference),
                     count: true,
                     callback: dojo.hitch(this, this.callBackUpdateButtonLabel),
                     error: function (error) {
@@ -520,7 +732,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             }
             var currentLabel = this.label.innerHTML;
             var newLabel = this.captionText + value;
-            if (value === "" && this.emptyCaptionText !== "")
+            if (value === "&nbsp")
                 newLabel = this.captionText + this.emptyCaptionText;
             if (this.displayFormat !== "") {
                 if (newLabel !== currentLabel)
@@ -535,7 +747,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
             this.readOnlyBool = true;
             var disableCondition = false;
             if (this.context) {
-                this.readOnlyBool = this.context.isReadonlyAttr(this.targetReferece);
+                this.readOnlyBool = this.context.isReadonlyAttr(this.targetReference);
                 if (this.readonly === "conditional") {
                     disableCondition = !this.context.get(this.readonlyConditional);
                 }
@@ -545,7 +757,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                 this.isInactive = true;
             else
                 this.isInactive = false;
-            var disabled = dojo.hasClass(this.dropDownButton, "disabled"); //TODO us function isDomDisab;led
+            var disabled = dojo.hasClass(this.dropDownButton, "disabled"); //TODO us function isDomDisabled
 
             if (!disabled && this.isInactive) {
                 this.button && dojo.addClass(this.button, "disabled");
@@ -567,8 +779,8 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                     var field = fields[x];
                     var name = field.name;
                     var reason = field.reason;
-                    if (name === this.targetReferece && !this.errorMenu) {
-                        validations[i].removeAttribute(this.targetReferece);
+                    if (name === this.targetReference && !this.errorMenu) {
+                        validations[i].removeAttribute(this.targetReference);
                         this.showValidationMessage(reason);
                     }
                 }
@@ -590,8 +802,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
                         var valid = this.validateConfig();
                         if (valid === true && this.prefetch === "onload") {
-                            this.dataSource.loadData();
-                            
+                            this.dataSource.loadData();                            
                         } 
                         this.updateButtonLabel();
                         this.handler = mx.data.subscribe({
@@ -600,7 +811,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
                         });
                         this.handlerReference = mx.data.subscribe({
                             guid: context.getGuid(),
-                            attr: this.targetReferece,
+                            attr: this.targetReference,
                             callback: dojo.hitch(this, this.updateButtonLabel)
                         });
                         this.handlerValidation = mx.data.subscribe({
@@ -631,4 +842,4 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData"], function (domGe
 
     };
     mxui.widget.declare('MultiLevelMenu.widget.MultiLevelMenu', MultiLevelMenu);
-})
+});
