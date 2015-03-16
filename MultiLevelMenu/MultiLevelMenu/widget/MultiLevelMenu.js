@@ -214,7 +214,9 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     dojo.setStyle(subMenu, "left", -subMenupos.w + "px");
                 else
                     dojo.setStyle(subMenu, "left", -menupos.x + 15 + "px");
-            }     
+            }   
+            
+            dojo.setStyle(subMenu, "top",  "0px"); //reset top
             
             var winh = win.getBox().h;            
             if(winh < (subMenupos.y + subMenupos.h)){
