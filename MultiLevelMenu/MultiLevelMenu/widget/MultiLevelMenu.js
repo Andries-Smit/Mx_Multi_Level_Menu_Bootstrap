@@ -87,8 +87,8 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
         
         // Author: Andries Smit
         // Organisation: Flock of Birds
-        // Version 2.1
-        // Date 11 March 2015
+        // Version 2.1.2
+        // Date 31 March 2015
         // 
         // KNOW ISSUES :
         // If menu has submenus no scrollbar will be shown.
@@ -140,6 +140,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
         // ADDED Scroll in sub menu (that does not have a sub menu)
         // ADDED Filter Search options to limit the list.
         // ADDED Default caption in the xml for translatable strings.
+        // FIXED Destroy of menu wrapper, Not destroying the wrapper keeps the menu visible after closing a popup with an open menu.
         
         buildRendering: function () {
             // select a templated based on widget settings
@@ -839,6 +840,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             mx.data.unsubscribe(this.handlerValidation);
             mx.data.unsubscribe(this.handlerReference);
             this.domNode && dojo.destroy(this.domNode);
+            this.wrapperNode && dojo.destroy(this.wrapperNode);
             console.debug(this.id + ".uninitialize");
         }
 
