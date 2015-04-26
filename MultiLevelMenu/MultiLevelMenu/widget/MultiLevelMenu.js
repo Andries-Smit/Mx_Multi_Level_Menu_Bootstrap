@@ -1,7 +1,9 @@
 // JSLint options:
-/*global dojo, require, mxui, mendix, dijit */
+/*global dojo, require, mxui, mendix, mx, dijit */
 mxui.dom.addCss(require.toUrl("MultiLevelMenu/widget/ui/MulitLevelMenu.css"));
-require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "dojo/aspect", "dijit/form/TextBox", "dojo/NodeList-traverse"], function (domGeom, menuData, win, aspect, TextBox) {
+require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "dojo/aspect", "dijit/form/TextBox", 
+    "dojo/on", "dojo/query", "dojo/dom-style", "dojo/dom-class", "dojo/_base/lang", "dojo/NodeList-traverse"], 
+function (domGeom, menuData, win, aspect, TextBox, on, query, domStyle, domClass, lang) {
     //"use strict";  cannot use strict mode due to buildRending: this.inherited(arguments);
     var MultiLevelMenu = {
         mixins: [mendix.addon._Contextable, dijit._TemplatedMixin],
@@ -87,8 +89,8 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
         
         // Author: Andries Smit
         // Organisation: Flock of Birds
-        // Version 2.1.2
-        // Date 31 March 2015
+        // Version 2.2
+        // Date 26 April 2015
         // 
         // KNOW ISSUES :
         // If menu has submenus no scrollbar will be shown.
@@ -141,6 +143,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
         // ADDED Filter Search options to limit the list.
         // ADDED Default caption in the xml for translatable strings.
         // FIXED Destroy of menu wrapper, Not destroying the wrapper keeps the menu visible after closing a popup with an open menu.
+        // FIXED AMD loading of all dojo modules. (fixes loading issue on MX5.15)
         
         buildRendering: function () {
             // select a templated based on widget settings
@@ -203,11 +206,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             evt.stopPropagation();
 
             var menu = evt.target.parentNode.parentNode;
-            dojo.query("*", menu).removeClass('open'); //close others
+            query("*", menu).removeClass('open'); //close others
             var ww = window.innerWidth; // store windows width before opening.
-            dojo.addClass(evt.target.parentNode, 'open');
+            domClass.add(evt.target.parentNode, 'open');
             var menupos = domGeom.position(evt.target.parentNode);
-            var subMenu = dojo.query("ul", evt.target.parentNode)[0];
+            var subMenu = query("ul", evt.target.parentNode)[0];
             var subMenupos = domGeom.position(subMenu);
 
             if ((subMenupos.x + subMenupos.w) + 30 > ww) {
@@ -259,7 +262,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
 
         showValidationMessage: function (msg) {
             // Show validation message under the menu
-            dojo.style(this.validationDiv, "display", "block");
+            domStyle.set(this.validationDiv, "display", "block");
             this.validationDiv.innerHTML = msg;
             // mx add also error parent node ?
         },
@@ -274,11 +277,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     name: "menuSearch",
                     class: "searchInput",
                     onClick: function(e){dojo.stopEvent(e);},
-                    onKeyUp: dojo.hitch(this,function(){
+                    onKeyUp: lang.hitch(this,function(){
                         //timer on update for better performance
                         if(this.scrollTimer)
                             clearTimeout(this.searchTimer);
-                        this.searchTimer = setTimeout(dojo.hitch(this, this.filterList, menu), 50);                        
+                        this.searchTimer = setTimeout(lang.hitch(this, this.filterList, menu), 50);                        
                     })
                 });
                 
@@ -297,8 +300,8 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     class: "close"
                 }, "x"));
 
-                this.connect(clearButton, 'onmouseenter', dojo.hitch(this, this.closeSubMenus, this.btnGroup));
-                this.connect(clearButton, "onclick", dojo.hitch(this, this.onClearSelect));
+                this.connect(clearButton, 'onmouseenter', lang.hitch(this, this.closeSubMenus, this.btnGroup));
+                this.connect(clearButton, "onclick", lang.hitch(this, this.onClearSelect));
 
                 menu.appendChild($("li", {
                     class: "divider"
@@ -337,69 +340,69 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                 var cssFilter = 'li:not(.hidden):not(.no-result):not(.divider):not(.clearSelection) > a:not(a[search-data*="' + value + '"])'; 
                 // filter only on submenus when parents are selectable
                 if(! this.parentSelectable) cssFilter += ':not(.subMenu)'; 
-                var list = dojo.query(cssFilter, menu);
+                var list = query(cssFilter, menu);
                 list.parent().addClass("hidden");
                 // find all items that match and show them (unhide)
                 cssFilter = 'li.hidden > a[search-data*="' + value + '"]';                     
-                list = dojo.query(cssFilter, menu);
+                list = query(cssFilter, menu);
                 list.parent().removeClass("hidden");
                 var parentSelectable = this.parentSelectable;
                 for(var i=0; i < 5 ; i++){
                     // TODO loop trough each level could be more efficient
                     // Check for each submenu if it should be shown
-                    list = dojo.query(".dropdown-submenu", menu).forEach(function(subMenuNode){
+                    list = query(".dropdown-submenu", menu).forEach(function(subMenuNode){
                         // find submenu has item that are not hidden.
-                        var subItemsVis = dojo.query("li:not(.hidden)",subMenuNode);
+                        var subItemsVis = query("li:not(.hidden)",subMenuNode);
                         if(subItemsVis.length > 0){ // has items, so show
-                                dojo.removeClass(subMenuNode, "hidden");
-                                parentSelectable && dojo.removeClass(subMenuNode, "hidden-submenu");
+                                domClass.remove(subMenuNode, "hidden");
+                                parentSelectable && domClass.remove(subMenuNode, "hidden-submenu");
                         } else {
                             if(parentSelectable){ 
                                 // this is sub menu selectable but has no sub menu items, so hide only the sub menu
-                                dojo.addClass(subMenuNode, "hidden-submenu");
+                                domClass.add(subMenuNode, "hidden-submenu");
                             } else {
                                 // sub menu is not selectable and has not children, so should be hidden
-                                dojo.addClass(subMenuNode, "hidden");                                
+                                domClass.add(subMenuNode, "hidden");                                
                             }
                         }
                     });
                 }
                 // find if there are still some items left after the search
-                list = dojo.query(">li:not(.hidden):not(.no-result):not(.divider):not(.clearSelection)",menu);
+                list = query(">li:not(.hidden):not(.no-result):not(.divider):not(.clearSelection)",menu);
 
                 if(list.length === 0)
-                    dojo.removeClass(this.noResultNode, "hidden");
+                    domClass.remove(this.noResultNode, "hidden");
                 else 
-                    dojo.addClass(this.noResultNode, "hidden");
+                    domClass.add(this.noResultNode, "hidden");
             } else { 
                 // no search, so remove all classes to make them hidden. 
-                dojo.query("li.hidden", menu).removeClass("hidden");
-                dojo.query("li.hidden-submenu", menu).removeClass("hidden-submenu");
-                dojo.addClass(this.noResultNode, "hidden");
+                query("li.hidden", menu).removeClass("hidden");
+                query("li.hidden-submenu", menu).removeClass("hidden-submenu");
+                domClass.add(this.noResultNode, "hidden");
             }  
         },
         
         positionDropdown: function (node){            
             if(this.shown === true){
                 if(!this.scrollHandle){
-                    var panel = dojo.query(this.domNode).closest(".mx-layoutcontainer-wrapper");
+                    var panel = query(this.domNode).closest(".mx-layoutcontainer-wrapper");
                     if(panel.length > 0){
-                        this.scrollHandle = dojo.on(panel, "scroll", dojo.hitch(this, function(){
+                        this.scrollHandle = on(panel, "scroll", lang.hitch(this, function(){
                             //timer on update for better performance
                             if(this.scrollTimer)
                                 clearTimeout(this.scrollTimer);
-                            this.scrollTimer = setTimeout(dojo.hitch(this, this.positionDropdown, this.wrapperNode), 50);
+                            this.scrollTimer = setTimeout(lang.hitch(this, this.positionDropdown, this.wrapperNode), 50);
 
                         } ));
                     }
                 }
                 if(!this.resizeHandle){
-                    var panel = dojo.query(this.domNode).closest(".mx-layoutcontainer-wrapper");
+                    var panel = query(this.domNode).closest(".mx-layoutcontainer-wrapper");
                     if(panel.length > 0){
-                        this.resizeHandle = aspect.after(this.mxform, "resize", dojo.hitch(this, function(){
+                        this.resizeHandle = aspect.after(this.mxform, "resize", lang.hitch(this, function(){
                             if(this.resizeTimer)
                                 clearTimeout(this.resizeTimer);
-                            this.resizeTimer = setTimeout(dojo.hitch(this, this.positionDropdown, this.wrapperNode), 50);                            
+                            this.resizeTimer = setTimeout(lang.hitch(this, this.positionDropdown, this.wrapperNode), 50);                            
                         } ));    
                     }
                 }                
@@ -408,35 +411,37 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                 this.resizeHandle && this.resizeHandle.remove();            
             }
             if (node && this.shown === true) {
-                dojo.addClass(node, "open");
+                domClass.add(node, "open");
             }
-            //positions the wrapper node relative to button
-            var btnPos = domGeom.position(this.btnGroup); 
+            if(this.btnGroup){
+                //positions the wrapper node relative to button
+                var btnPos = domGeom.position(this.btnGroup); 
 
-            dojo.setStyle(node, "left", btnPos.x  + "px");
-            dojo.setStyle(node, "top", (btnPos.y + btnPos.h)  + "px");
-            if(node.firstChild){
-                var menupos = domGeom.position(node.firstChild), winh = win.getBox().h;
-                if(this.elementInView(this.btnGroup)){
-                    if(winh < (menupos.y + menupos.h)){
+                dojo.setStyle(node, "left", btnPos.x  + "px");
+                dojo.setStyle(node, "top", (btnPos.y + btnPos.h)  + "px");
+                if(node.firstChild){
+                    var menupos = domGeom.position(node.firstChild), winh = win.getBox().h;
+                    if(this.elementInView(this.btnGroup)){
+                        if(winh < (menupos.y + menupos.h)){
+                                dojo.setStyle(node, "left", btnPos.x + 10 + "px");
+                            if (winh > (menupos.h +10))
+                                dojo.setStyle(node, "top", (winh - menupos.h -20)   + "px");
+                            else
+                                dojo.setStyle(node, "top", 0  + "px");                    
+                        }
+                    } else {
+                        if(winh < (menupos.y + menupos.h)){
                             dojo.setStyle(node, "left", btnPos.x + 10 + "px");
-                        if (winh > (menupos.h +10))
-                            dojo.setStyle(node, "top", (winh - menupos.h -20)   + "px");
-                        else
-                            dojo.setStyle(node, "top", 0  + "px");                    
+                            dojo.setStyle(node, "top", (btnPos.y - menupos.h)   + "px");
+                        }
                     }
-                } else {
-                    if(winh < (menupos.y + menupos.h)){
-                        dojo.setStyle(node, "left", btnPos.x + 10 + "px");
-                        dojo.setStyle(node, "top", (btnPos.y - menupos.h)   + "px");
-                    }
-                }
-            }
+                }    
+            }            
         },
 
         closeSubMenus: function (menu) {
             //close subMenus of main menu.
-            dojo.query("*", menu).removeClass('open');
+            query("*", menu).removeClass('open');
         },
 
         getMenu: function (menuData) {
@@ -462,11 +467,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     });
                     mxui.dom.html(subLink, menuData[i].label);
 
-                    this.connect(subLink, "onclick", dojo.hitch(this, this.onSubMenuEnter));
-                    this.connect(subLink, 'onmouseenter', dojo.hitch(this, this.onSubMenuEnter));
+                    this.connect(subLink, "onclick", lang.hitch(this, this.onSubMenuEnter));
+                    this.connect(subLink, 'onmouseenter', lang.hitch(this, this.onSubMenuEnter));
                     if(this.parentSelectable){
-                        this.connect(subLink, "ondblclick", dojo.hitch(this, this.onItemSelect));
-                        this.connect(subLink, "onclick", dojo.hitch(this, function(link, e){
+                        this.connect(subLink, "ondblclick", lang.hitch(this, this.onItemSelect));
+                        this.connect(subLink, "onclick", lang.hitch(this, function(link, e){
                             if(dojo.hasClass(link.parentNode, "hidden-submenu")){
                                 // in search mode the parent can be selected with a single click.
                                 this.onItemSelect(e);
@@ -491,13 +496,13 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     var listItem = $("li", {
                         role: "presentation"
                     }, subLink);
-                    this.connect(subLink, 'onmouseenter', dojo.hitch(this, this.closeSubMenus, menu));
-                    this.connect(subLink, "onclick", dojo.hitch(this, this.onItemSelect));
+                    this.connect(subLink, 'onmouseenter', lang.hitch(this, this.closeSubMenus, menu));
+                    this.connect(subLink, "onclick", lang.hitch(this, this.onItemSelect));
                     menu.appendChild(listItem);
                 }
             }
             if( ! hasSubmenu ){
-                dojo.addClass(menu, "scrollable-menu");
+                domClass.add(menu, "scrollable-menu");
             }
             if (menuData.length === 0 && this.noMenuItemsCaption !== "") {
                 menu.appendChild(this.noMenuItemsMenu());
@@ -616,9 +621,9 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             }
             mxui.dom.html(this.label, "Button loading");
 
-            this.connect(this.dropDownButton, "onclick", dojo.hitch(this, this.toggle));
-            this.button && this.connect(this.button, "onclick", dojo.hitch(this, this.execution, this.clickMicroflow));   
-            this.connect(document, "click", dojo.hitch(this, this.close));
+            this.connect(this.dropDownButton, "onclick", lang.hitch(this, this.toggle));
+            this.button && this.connect(this.button, "onclick", lang.hitch(this, this.execution, this.clickMicroflow));   
+            this.connect(document, "click", lang.hitch(this, this.close));
         },
 
         toggle: function (e) {
@@ -642,7 +647,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             if (this.domIsDisabled()) {
                 return false;
             }
-            this.isOpen() || dojo.addClass(this.btnGroup, "open");
+            this.isOpen() || domClass.add(this.btnGroup, "open");
             if (this.prefetch === "onclickOnce" && !this.dataLoaded){ 
                 this.setLoadingMenu();
                 this.dataSource.loadData();
@@ -650,7 +655,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             if (this.prefetch === "onclick") {
                 this.counterMenuItem = 0;
                 if (this.validationDiv)
-                    dojo.style(this.validationDiv, "display", "none");
+                    domStyle.set(this.validationDiv, "display", "none");
                 this.menuNode && dojo.destroy(this.menuNode);
                 this.setLoadingMenu();
                 this.dataSource.loadData();
@@ -659,11 +664,11 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             this.shown = true;            
             if (this.wrapperNode) {
                 // TODO close time out does not work anymore
-                 this.stayOpenHandler = this.connect(this.domNode, "onmouseenter", dojo.hitch(this, function(){
+                 this.stayOpenHandler = this.connect(this.domNode, "onmouseenter", lang.hitch(this, function(){
                     clearTimeout(this.timer);
                 }));
-                this.closeHandler = this.connect(this.wrapperNode.firstChild, "onblur", dojo.hitch(this, function(){
-                    this.timer = setTimeout(dojo.hitch(this,function(){
+                this.closeHandler = this.connect(this.wrapperNode.firstChild, "onblur", lang.hitch(this, function(){
+                    this.timer = setTimeout(lang.hitch(this,function(){
                         this.disconnect(this.closeHandler); 
                         this.disconnect(this.stayOpenHandler); 
                         this.close();}),1000);
@@ -689,10 +694,10 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                 return false;
             }
             if(this.isOpen()){
-                dojo.query("*", this.domNode).removeClass('open');
+                query("*", this.domNode).removeClass('open');
                 if(this.wrapperNode){
-                    dojo.removeClass(this.wrapperNode, 'open');
-                    dojo.query("*", this.wrapperNode).removeClass('open');
+                    domClass.remove(this.wrapperNode, 'open');
+                    query("*", this.wrapperNode).removeClass('open');
                 }
             }            
             this.shown = false;
@@ -714,7 +719,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                 mx.data.get({
                     guid: this.context.get(this.targetReference),
                     count: true,
-                    callback: dojo.hitch(this, this.callBackUpdateButtonLabel),
+                    callback: lang.hitch(this, this.callBackUpdateButtonLabel),
                     error: function (error) {
                         console.error("Error in updateButtonLabel: " + error.description);
                     }
@@ -763,15 +768,15 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
             var disabled = dojo.hasClass(this.dropDownButton, "disabled"); //TODO us function isDomDisabled
 
             if (!disabled && this.isInactive) {
-                this.button && dojo.addClass(this.button, "disabled");
-                dojo.addClass(this.dropDownButton, "disabled");
+                this.button && domClass.add(this.button, "disabled");
+                domClass.add(this.dropDownButton, "disabled");
             } else if (disabled && !this.isInactive) {
-                this.button && dojo.removeClass(this.button, "disabled");
-                dojo.removeClass(this.dropDownButton, "disabled");
+                this.button && domClass.remove(this.button, "disabled");
+                domClass.remove(this.dropDownButton, "disabled");
             }
 
             if (this.validationDiv && !this.errorMenu)
-                dojo.style(this.validationDiv, "display", "none");
+                domStyle.set(this.validationDiv, "display", "none");
         },
 
         validationUpdate: function (validations) {
@@ -799,7 +804,7 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                     error: function () {
                         console.log("Retrieving context object failed.");
                     },
-                    callback: dojo.hitch(this, function (context) {
+                    callback: lang.hitch(this, function (context) {
                         this.context = context;
                         this.dataSource.context = context;
 
@@ -810,17 +815,17 @@ require(["dojo/dom-geometry", "MultiLevelMenu/widget/MenuData", "dojo/window", "
                         this.updateButtonLabel();
                         this.handler = mx.data.subscribe({
                             guid: context.getGuid(),
-                            callback: dojo.hitch(this, this.updateButtonLabel)
+                            callback: lang.hitch(this, this.updateButtonLabel)
                         });
                         this.handlerReference = mx.data.subscribe({
                             guid: context.getGuid(),
                             attr: this.targetReference,
-                            callback: dojo.hitch(this, this.updateButtonLabel)
+                            callback: lang.hitch(this, this.updateButtonLabel)
                         });
                         this.handlerValidation = mx.data.subscribe({
                             guid: context.getGuid(),
                             val: true,
-                            callback: dojo.hitch(this, this.validationUpdate)
+                            callback: lang.hitch(this, this.validationUpdate)
                         });
                     })
                 });
