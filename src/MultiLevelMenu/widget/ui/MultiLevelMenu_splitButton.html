@@ -1,12 +1,13 @@
 <div>
     <div class="btn-group" dojoAttachPoint="btnGroup">
-        <button type="button" dojoAttachPoint="dropDownButton" class="btn btn-${buttonStyle} dropdown-toggle" data-toggle="dropdown">
+        <button type="button" dojoAttachPoint="button" class="btn btn-${buttonStyle}" >
             <img dojoAttachPoint="imageNode">
             <span dojoAttachPoint="label"></span>
+        </button>
+        <button type="button" dojoAttachPoint="dropDownButton" class="btn btn-${buttonStyle} dropdown-toggle" data-toggle="dropdown">
             <span class="caret"></span>
             <span class="sr-only">Toggle Dropdown</span>
         </button>
     </div>
     <div dojoAttachPoint="validationDiv" class="alert alert-danger" style="display: none;"></div>
 </div>
-   

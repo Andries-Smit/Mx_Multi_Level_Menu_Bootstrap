@@ -1,4 +1,3 @@
-
 /* Note that the sub-menu are removed from bootstrap 3
 *  The following classes will make the menus active
 */
@@ -10,7 +9,7 @@
 .dropdown-submenu:hover>a:after{border-left-color:#ffffff;}
 .dropdown-submenu.pull-left{float:none;}.dropdown-submenu.pull-left>.dropdown-menu{left:-100%;margin-left:10px;-webkit-border-radius:6px 0 6px 6px;-moz-border-radius:6px 0 6px 6px;border-radius:6px 0 6px 6px;}
 
- 
+
 .multiLevelMenu button.close {
     position: relative;
     left: 15px;

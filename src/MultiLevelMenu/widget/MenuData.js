@@ -1,20 +1,19 @@
-// JSLint options:
-/*global dojo, mendix, mx*/
-dojo.provide("MultiLevelMenu.widget.MenuData");
-require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
+// dojo.provide("MultiLevelMenu.widget.MenuData");
+define(["dojo/_base/declare", "dojo/_base/lang"], function (declare, lang) {
     "use strict";
 
     return declare("MultiLevelMenu.widget.MenuData", null, {
         childCache: [],
         menuWidget: null,
-        rendering: false,    
+        rendering: false,
         menuDataRecursive: [],
 
         constructor: function (inputargs) {
             "use strict";
+
             // Copies the needed input parameters
             this.menuDataRecursive = [];
-            this.childCache= [];
+            this.childCache = [];
             for (var input in inputargs) {
                 if (inputargs.hasOwnProperty(input)) {
                     var param = {};
@@ -24,15 +23,15 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
             }
         },
 
-        loadData: function(){
+        loadData: function () {
             // Combined loading function for recursive and non recursice menu
             this.rendering = false;
             if (this.recursive === true) {
                 this.menuDataRecursive = [];
-                mendix.lang.sequence([this.loadMenuDataRecursiveChild, this.loadMenuDataRecursiveRoot],null, this); // load child before parents  
+                mendix.lang.sequence([this.loadMenuDataRecursiveChild, this.loadMenuDataRecursiveRoot], null, this); // load child before parents
             } else {
                 this.loadMenuData();
-            }  
+            }
         },
 
         // --------- Recursive Loading ---------//
@@ -59,15 +58,16 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     }
                 });
             } else {
-                var constraint = this.menuLevels[0].refSourceEntityConstraint.replace('[%CurrentObject%]', this.context.getGuid());  
+                var constraint = this.menuLevels[0].refSourceEntityConstraint.replace(
+                    "[%CurrentObject%]",
+                    this.context.getGuid()
+                );
                 mx.data.get({
                     xpath: "//" + this.menuLevels[0].refSourceEntity + constraint,
                     filter: {
                         attributes: [this.menuLevels[0].labelAttribute],
                         references: references,
-                        sort: [
-                            [this.menuLevels[0].labelAttribute, "asc"]
-                        ],
+                        sort: [[this.menuLevels[0].labelAttribute, "asc"]],
                         offset: 0,
                         amount: this.maxMenuItems + 1
                     },
@@ -103,15 +103,13 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     }
                 });
             } else {
-                var constraint = this.entityConstraint.replace('[%CurrentObject%]', this.context.getGuid()); 
+                var constraint = this.entityConstraint.replace("[%CurrentObject%]", this.context.getGuid());
                 mx.data.get({
                     xpath: "//" + this.selectEntity + constraint,
                     filter: {
                         attributes: [this.menuLevels[0].labelAttribute],
                         references: references,
-                        sort: [
-                            [this.menuLevels[0].labelAttribute, "asc"]
-                        ],
+                        sort: [[this.menuLevels[0].labelAttribute, "asc"]],
                         offset: 0,
                         amount: this.maxMenuItems + 1
                     },
@@ -121,15 +119,18 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     }
                 });
             }
-            callback && callback();
+            if (callback) {
+                callback();
+            }
         },
 
         buildCacheTable: function (objs) {
-            // Build cache table for performance improvement 
+            // Build cache table for performance improvement
             this.childCache = [];
             for (var i = 0; i < objs.length; i++) {
                 var guid = objs[i].getReference(this.menuLevels[0].reference);
-                if (guid) { // has parent
+                if (guid) {
+                    // has parent
                     if (guid in this.childCache) {
                         this.childCache[guid].push(objs[i]);
                     } else {
@@ -153,8 +154,7 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
             var o = null;
             var childMenus = [];
             for (var i = 0; i < objs.length; i++) {
-                if (this.menuWidget.checkMenuSize())
-                    break;
+                if (this.menuWidget.checkMenuSize()) break;
                 o = objs[i];
                 var subMenu = {
                     guid: o.getGuid(),
@@ -163,18 +163,20 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     loaded: false
                 };
                 childMenus.push(subMenu);
-                if (parentMenu === null) { // root menu does not have parents.
+                if (parentMenu === null) {
+                    // root menu does not have parents.
                     this.menuDataRecursive = childMenus;
                 } else {
                     parentMenu.children = childMenus;
                 }
             }
-            for (var i = 0; i < childMenus.length; i++) {
-                this.cbLoadMenuDataRecursive(childMenus[i], this.filter(childMenus[i]));
+            for (var j = 0; j < childMenus.length; j++) {
+                this.cbLoadMenuDataRecursive(childMenus[j], this.filter(childMenus[j]));
             }
 
             if (objs.length === 0) {
-                if (!parentMenu) { // is empty root
+                if (!parentMenu) {
+                    // is empty root
                     this.menuWidget.appendMenu([]);
                 } else {
                     parentMenu.loaded = true;
@@ -197,8 +199,7 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                 if (menu[i].children === null && menu[i].loaded === false) {
                     return false;
                 } else if (menu[i].children !== null) {
-                    if (!this.checkMenuCompleteRecrusive(menu[i].children))
-                        return false;
+                    if (!this.checkMenuCompleteRecrusive(menu[i].children)) return false;
                 }
             }
             return true;
@@ -224,15 +225,13 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     }
                 });
             } else {
-                var constraint = this.entityConstraint.replace('[%CurrentObject%]', this.context.getGuid()); 
+                var constraint = this.entityConstraint.replace("[%CurrentObject%]", this.context.getGuid());
                 mx.data.get({
                     xpath: "//" + this.selectEntity + constraint,
                     filter: {
                         attributes: [this.displayLabel],
                         references: references,
-                        sort: [
-                            [this.displayLabel, "asc"]
-                        ],
+                        sort: [[this.displayLabel, "asc"]],
                         offset: 0,
                         amount: this.maxMenuItems + 1
                     },
@@ -250,22 +249,24 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
             var o = null;
             for (var i = 0; i < objs.length; i++) {
                 o = objs[i];
-                if(this.dsMicroflow)
-                    var parentIndex = o.get(this.menuLevels[level].reference);
-                else
-                    var parentIndex = o.get(this.menuLevels[level].reference).guid;
+                var parentIndex;
+                if (this.dsMicroflow) {
+                    parentIndex = o.get(this.menuLevels[level].reference);
+                } else {
+                    parentIndex = o.get(this.menuLevels[level].reference).guid;
+                }
                 if (parentIndex) {
-                    if (this.menuWidget.checkMenuSize())
-                        return;
+                    if (this.menuWidget.checkMenuSize()) return;
                     var menuItem = {
                         guid: o.getGuid(),
                         label: o.get(this.displayLabel),
                         children: null
                     };
-                    if (parentIndex in parents) { // append child
+                    if (parentIndex in parents) {
+                        // append child
                         parents[parentIndex].push(menuItem);
-
-                    } else { // first child
+                    } else {
+                        // first child
                         parents[parentIndex] = [menuItem];
                     }
                 }
@@ -276,17 +277,14 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
         getParentLevel: function (menuData, level) {
             // get the details of the parents
             var references = {};
-            if (this.menuLevels.length > level + 1)
-                references[this.menuLevels[level + 1].reference] = {};
+            if (this.menuLevels.length > level + 1) references[this.menuLevels[level + 1].reference] = {};
             var guids = Object.keys(menuData);
             mx.data.get({
                 guids: guids,
                 filter: {
                     attributes: [this.menuLevels[level].labelAttribute],
                     references: references,
-                    sort: [
-                        [this.menuLevels[level].labelAttribute, "asc"]
-                    ],
+                    sort: [[this.menuLevels[level].labelAttribute, "asc"]],
                     offset: 0,
                     amount: this.maxMenuItems + 1
                 },
@@ -307,39 +305,36 @@ require(["dojo/_base/declare", "dojo/_base/lang"], function (declare,  lang) {
                     o = objs[i];
                     var parentIndex = o.get(this.menuLevels[nextLevel].reference);
                     if (parentIndex !== "") {
-                        if (this.menuWidget.checkMenuSize())
-                            break;
-                        var menuItem = {
+                        if (this.menuWidget.checkMenuSize()) break;
+                        var menuItem1 = {
                             guid: o.getGuid(),
                             label: o.get(this.menuLevels[level].labelAttribute),
                             children: menuData[o.getGuid()]
                         };
                         if (parentIndex in parents) {
-                            parents[parentIndex].push(menuItem);
-
+                            parents[parentIndex].push(menuItem1);
                         } else {
-                            parents[parentIndex] = [menuItem];
+                            parents[parentIndex] = [menuItem1];
                         }
                     }
                 }
-            } else if (this.menuLevels.length === nextLevel) { // menu complete, set first level
+                this.getParentLevel(parents, nextLevel);
+            } else if (this.menuLevels.length === nextLevel) {
+                // menu complete, set first level
                 var completeMenu = [];
-                var o = null;
-                for (var i = 0; i < objs.length; i++) {
-                    o = objs[i];
-                    if (this.menuWidget.checkMenuSize())
-                        break;
+                var on = null;
+                for (var j = 0; j < objs.length; j++) {
+                    on = objs[j];
+                    if (this.menuWidget.checkMenuSize()) break;
                     var menuItem = {
-                        guid: o.getGuid(),
-                        label: o.get(this.menuLevels[level].labelAttribute),
-                        children: menuData[o.getGuid()]
+                        guid: on.getGuid(),
+                        label: on.get(this.menuLevels[level].labelAttribute),
+                        children: menuData[on.getGuid()]
                     };
                     completeMenu.push(menuItem);
                 }
                 this.menuWidget.appendMenu(completeMenu); // TODO Work with callback
             }
-            if (this.menuLevels.length > nextLevel)
-                this.getParentLevel(parents, nextLevel);
         }
     });
 });
